@@ -1156,4 +1156,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     initializeApp(); // Run the initialization
-});```
+
+});
