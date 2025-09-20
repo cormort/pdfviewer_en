@@ -42,21 +42,109 @@
       position: relative; 
     }
 
-    #toolbar-toggle {
-      display: none;
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 1003;
-      pointer-events: auto;
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
-      padding: 8px 12px;
-      cursor: pointer;
-      font-size: 1.2em;
-      border-radius: 4px;
+    /* --- Main content area for split view --- */
+    #main-content {
+      display: flex;
+      flex: 1; /* Take remaining height */
+      overflow: hidden; /* Prevent inner scrolling */
     }
     
+    #pdf-container {
+      flex: 1; /* Grow to fill available space */
+      position: relative;
+      overflow: auto;
+      background-color: #e9ecef;
+      padding: 10px;
+      box-sizing: border-box;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 60px;
+    }
+    
+    /* --- Search results side panel --- */
+    #search-results-panel {
+      display: none; /* Hidden by default */
+      width: 320px;
+      flex-shrink: 0;
+      background-color: #f1f3f5;
+      border-left: 1px solid #dee2e6;
+      box-sizing: border-box;
+    }
+
+    #app-container.results-panel-visible #search-results-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #search-results-panel h3 {
+      margin: 0;
+      padding: 15px;
+      border-bottom: 1px solid #ccc;
+      font-size: 1.1em;
+      color: #333;
+      background-color: #f8f9fa;
+      flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    #panel-dropdown-container {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        background-color: #f8f9fa;
+        flex-shrink: 0; /* Prevent shrinking */
+    }
+    #panelResultsDropdown {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 1em;
+    }
+
+    #results-list {
+      padding: 10px;
+      flex-grow: 1; /* Fill available space */
+      overflow-y: auto; /* Enable scrolling */
+    }
+
+    .result-item {
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      cursor: pointer;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .result-item:hover {
+      border-color: #007bff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .result-item .thumbnail-canvas {
+      width: 100%;
+      height: auto;
+      border: 1px solid #e9ecef;
+      margin-bottom: 8px;
+    }
+    .result-item .page-info {
+      font-weight: bold;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+      color: #495057;
+    }
+    .result-item .context-snippet {
+      font-size: 0.85em;
+      line-height: 1.4;
+      color: #212529;
+      word-wrap: break-word;
+    }
+    .result-item .wavy-underline {
+      text-decoration-line: underline !important;
+      text-decoration-style: wavy !important;
+      text-decoration-color: sandybrown !important;
+      background-color: rgba(244, 164, 96, 0.2);
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+
     #toolbar-toggle-tab {
         display: none;
     }
@@ -70,6 +158,7 @@
       gap: 10px;
       align-items: center;
       flex-shrink: 0;
+      overflow: hidden;
     }
     #toolbar .title-container {
       display: flex;
@@ -88,7 +177,9 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    },
+      flex-shrink: 1;
+      min-width: 100px;
+    }
     #toolbar input[type="text"],
     #toolbar input[type="number"],
     #toolbar select,
@@ -101,7 +192,8 @@
       color: initial;
     }
     #toolbar input[type="text"] {
-      width: 150px;
+      flex: 1 1 150px;
+      min-width: 120px;
       background-color: initial;
       border-color: initial;
       color: initial;
@@ -122,23 +214,47 @@
       background-color: initial;
       color: initial;
       border-color: initial;
+      flex-shrink: 0;
     }
     #toolbar button:hover {
       background-color: initial;
     }
 
-    #quality-control,
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .zoom-controls button {
+      min-width: 38px;
+      font-weight: bold;
+    }
+    .zoom-controls button.active {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+    #desktop-zoom-controls {
+      border-left: 1px solid #ccc;
+      padding-left: 10px;
+      margin-left: 10px;
+    }
+    #mobile-zoom-controls {
+        width: 100%;
+        justify-content: center;
+    }
+
+
     #local-magnifier-zoom-controls {
       display: flex;
       align-items: center;
       gap: 5px;
     }
-    #quality-control label,
     #local-magnifier-zoom-controls label {
       white-space: nowrap;
       font-size: 0.9em;
     }
-    #quality-control select,
     #local-magnifier-zoom-controls select {
       padding: 6px;
     }
@@ -148,6 +264,7 @@
       align-items: center;
       gap: 5px;
       margin-left: auto;
+      flex-shrink: 0;
     }
     #page-navigation button {
       padding: 8px;
@@ -166,17 +283,6 @@
       background-color: initial;
     }
 
-    #pdf-container {
-      position: relative;
-      flex-grow: 1;
-      overflow: auto;
-      background-color: #e9ecef;
-      padding: 10px;
-      box-sizing: border-box;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 60px;
-    }
-
     #pdf-canvas {
       border: 1px solid #000;
       display: block;
@@ -193,6 +299,30 @@
       z-index: 10;
       touch-action: none;
       pointer-events: none;
+    }
+
+    #pdf-container.paragraph-selection-mode {
+        cursor: pointer;
+    }
+    .paragraph-highlight {
+        position: absolute;
+        background-color: rgba(0, 123, 255, 0.25);
+        border: 1px solid rgba(0, 123, 255, 0.5);
+        border-radius: 3px;
+        z-index: 6;
+        pointer-events: none;
+    }
+    #copy-paragraph-btn {
+        position: absolute;
+        z-index: 7;
+        padding: 5px 10px;
+        font-size: 14px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
     #magnifier-glass {
@@ -236,7 +366,7 @@
     .highlights-hidden .wavy-underline {
       text-decoration: none !important;
     }
-    #resultsDropdown .wavy-underline {
+    #resultsDropdown .wavy-underline, #panelResultsDropdown .wavy-underline {
       text-decoration-line: underline !important;
       text-decoration-style: wavy !important;
       text-decoration-color: sandybrown !important;
@@ -301,11 +431,15 @@
     #toggle-text-selection-btn.active {
       background-color: rgba(0, 0, 100, 0.7);
     }
+    #toggle-paragraph-selection-btn.active {
+      background-color: rgba(0, 123, 255, 0.7);
+    }
     #toggle-local-magnifier-btn.active {
       background-color: rgba(100, 0, 100, 0.7);
     }
 
     #bottom-results-bar {
+      display: none;
       position: fixed;
       bottom: 0;
       left: 0;
@@ -314,15 +448,11 @@
       border-top: 1px solid #dee2e6;
       padding: 5px 10px;
       box-sizing: border-box;
-      display: none;
       justify-content: center;
       align-items: center;
       gap: 0;
       box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
       z-index: 1002;
-    }
-    body.results-bar-visible #bottom-results-bar {
-      display: flex;
     }
     #bottom-results-bar #result-nav-wrapper {
       display: flex;
@@ -348,8 +478,46 @@
       max-width: 100%;
     }
 
-    /* Mobile Styles */
+    /* --- Responsive Logic --- */
+    #mobile-zoom-controls {
+        display: none;
+    }
+
+    @media (max-width: 1380px) {
+        #go-to-first-page {
+            display: none;
+        }
+        #page-slider {
+            min-width: 60px;
+        }
+        #toolbar input[type="text"] {
+            min-width: 100px;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        #toolbar label[for="fileInput"] {
+            display: none;
+        }
+    }
+
+    @media (max-width: 1024px) {
+      #search-results-panel {
+        display: none !important;
+      }
+      body.results-bar-visible #bottom-results-bar {
+        display: flex;
+      }
+    }
+
     @media (max-width: 768px) {
+      #desktop-zoom-controls {
+        display: none;
+      }
+      #mobile-zoom-controls {
+        display: flex;
+      }
+
       #toolbar-toggle-tab {
         display: flex;
         position: absolute;
@@ -419,15 +587,20 @@
       #toolbar input[type="number"],
       #toolbar select,
       #toolbar button,
-      #quality-control,
       #local-magnifier-zoom-controls {
         width: 100%;
       }
-      #quality-control,
+      /* --- THIS IS THE FIX --- */
+      #toolbar input[type="text"],
+      #toolbar button {
+        padding-top: 6px;
+        padding-bottom: 6px;
+        font-size: 0.95em;
+      }
+
       #local-magnifier-zoom-controls {
         justify-content: space-between;
       }
-      #quality-control select,
       #local-magnifier-zoom-controls select {
         flex-grow: 1;
       }
@@ -519,13 +692,11 @@
       #toolbar input[type="file"] {
         font-size: 0.7em !important;
       }
-      #quality-control label,
       #local-magnifier-zoom-controls label {
         font-size: 0.7em !important;
         margin-right: 3px !important;
         padding: 1px !important;
       }
-      #quality-control select,
       #local-magnifier-zoom-controls select {
         font-size: 0.7em !important;
         padding: 1px !important;
@@ -590,14 +761,14 @@
       <input type="text" id="searchInput" placeholder="Keyword or Regex" />
       <button id="search-action-button">Search</button>
       
-      <div id="quality-control">
-        <label for="quality-selector">Quality:</label>
-        <select id="quality-selector">
-            <option value="1.0">Standard</option>
-            <option value="1.5" selected>High</option>
-            <option value="2.0">Highest</option>
-        </select>
+      <!-- Desktop Zoom Controls -->
+      <div id="desktop-zoom-controls" class="zoom-controls">
+        <button id="zoom-out-btn" title="Zoom Out">-</button>
+        <button id="fit-height-btn" title="Fit to Page Height">Fit Height</button>
+        <button id="fit-width-btn" title="Fit to Page Width">Fit Width</button>
+        <button id="zoom-in-btn" title="Zoom In">+</button>
       </div>
+
       <div id="local-magnifier-zoom-controls" style="display: none; align-items: center; gap: 5px;">
         <label for="local-magnifier-zoom-selector" style="white-space: nowrap; font-size: 0.9em;">Magnifier Zoom:</label>
         <select id="local-magnifier-zoom-selector" style="padding: 6px;">
@@ -608,6 +779,15 @@
             <option value="3.5">3.5x</option>
         </select>
       </div>
+
+      <!-- Mobile Zoom Controls (inside the slide-out menu) -->
+      <div id="mobile-zoom-controls" class="zoom-controls">
+        <button id="mobile-zoom-out-btn" title="Zoom Out">-</button>
+        <button id="mobile-fit-height-btn" title="Fit to Page Height">Fit Height</button>
+        <button id="mobile-fit-width-btn" title="Fit to Page Width">Fit Width</button>
+        <button id="mobile-zoom-in-btn" title="Zoom In">+</button>
+      </div>
+
       <div id="page-navigation">
         <button id="go-to-first-page">First Page</button>
         <button id="prev-page">Prev</button>
@@ -621,13 +801,24 @@
       </div>
     </div>
 
-    <div id="pdf-container">
-      <canvas id="pdf-canvas"></canvas>
-      <div id="text-layer" class="textLayer"></div>
-      <canvas id="drawing-canvas"></canvas>
-      <div id="magnifier-glass">
-        <canvas id="magnifier-canvas"></canvas>
-      </div>
+    <div id="main-content">
+        <div id="pdf-container">
+          <canvas id="pdf-canvas"></canvas>
+          <div id="text-layer" class="textLayer"></div>
+          <canvas id="drawing-canvas"></canvas>
+          <div id="magnifier-glass">
+            <canvas id="magnifier-canvas"></canvas>
+          </div>
+        </div>
+        <div id="search-results-panel">
+            <h3>Bookmarks / Search Results</h3>
+            <div id="panel-dropdown-container">
+                <select id="panelResultsDropdown">
+                    <option value="">Search Results</option>
+                </select>
+            </div>
+            <div id="results-list"></div>
+        </div>
     </div>
   </div>
 
@@ -635,7 +826,11 @@
     <button id="toggle-underline-btn" title="Toggle Search Result Underlines">
         <span class="toggle-underline-icon">S</span>
     </button>
-    <button id="toggle-text-selection-btn" title="Enable Text Selection">TS</button>
+    <div class="fab-button-group">
+        <button id="toggle-paragraph-selection-btn" title="Enable Paragraph Selection">¶</button>
+        <button id="copy-page-text-btn" title="Copy Page Text">📝</button>
+        <button id="toggle-text-selection-btn" title="Enable Text Selection">TS</button>
+    </div>
     <div class="fab-button-group">
         <button id="toggle-highlighter-btn" title="Enable Highlighter">🖌️</button>
         <button id="clear-highlighter-btn" title="Clear Highlighter Marks">🗑️</button>
@@ -656,7 +851,6 @@
 </div>
 
   <script type="module">
-    // This script should be placed before the main script.js
     import { GlobalWorkerOptions } from './lib/pdfjs/pdf.mjs'; 
     GlobalWorkerOptions.workerSrc = './lib/pdfjs/pdf.worker.mjs';
   </script>
