@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
     let pageRendering = false;
     let searchResults = [];
+    let currentFileFilter = 'all'; // For cascading dropdowns
 
     let currentZoomMode = 'height';
     let currentScale = 1.0;
@@ -38,8 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const goToPageBtn = document.getElementById('go-to-page-btn');
     const pageSlider = document.getElementById('page-slider');
     
+    // Dropdown selectors (including new ones)
     const resultsDropdown = document.getElementById('resultsDropdown');
     const panelResultsDropdown = document.getElementById('panelResultsDropdown');
+    const fileFilterDropdown = document.getElementById('fileFilterDropdown');
+    const panelFileFilterDropdown = document.getElementById('panelFileFilterDropdown');
+
 
     const exportPageBtn = document.getElementById('export-page-btn');
     const sharePageBtn = document.getElementById('share-page-btn');
@@ -70,6 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const zoomLevelDisplay = document.getElementById('zoom-level-display');
 
     const toggleParagraphSelectionBtn = document.getElementById('toggle-paragraph-selection-btn');
+    
+    // Resizer selectors
+    const resizer = document.getElementById('resizer');
+    const mainContent = document.getElementById('main-content');
 
 
     let localMagnifierEnabled = false;
@@ -95,10 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
         globalTotalPages = 0;
         currentPage = 1;
         searchResults = [];
+        currentFileFilter = 'all';
         currentZoomMode = 'height';
 
         if (resultsDropdown) resultsDropdown.innerHTML = '<option value="">Search Results</option>';
         if (panelResultsDropdown) panelResultsDropdown.innerHTML = '<option value="">Search Results</option>';
+        if (fileFilterDropdown) fileFilterDropdown.innerHTML = '<option value="all">All Files</option>';
+        if (panelFileFilterDropdown) panelFileFilterDropdown.innerHTML = '<option value="all">All Files</option>';
         if (resultsList) resultsList.innerHTML = '';
         updateResultsNav();
 
@@ -489,12 +501,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- CORRECTED searchKeyword function ---
     function searchKeyword() {
         const input = searchInputElem.value.trim();
         searchResults = [];
-        if(resultsDropdown) resultsDropdown.innerHTML = '<option value="">Searching...</option>';
-        if(panelResultsDropdown) panelResultsDropdown.innerHTML = '<option value="">Searching...</option>';
+        currentFileFilter = 'all'; // Reset filter on new search
+
+        const searchingOption = '<option value="">Searching...</option>';
+        if(resultsDropdown) resultsDropdown.innerHTML = searchingOption;
+        if(panelResultsDropdown) panelResultsDropdown.innerHTML = searchingOption;
+        if(fileFilterDropdown) fileFilterDropdown.innerHTML = '<option value="all">All Files</option>';
+        if(panelFileFilterDropdown) panelFileFilterDropdown.innerHTML = '<option value="all">All Files</option>';
         if(resultsList) resultsList.innerHTML = 'Searching, please wait...';
         updateResultsNav();
 
@@ -584,29 +600,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const notFoundMsg = '<option>Keyword not found</option>';
                 if(resultsDropdown) resultsDropdown.innerHTML = notFoundMsg;
                 if(panelResultsDropdown) panelResultsDropdown.innerHTML = notFoundMsg;
+                if(fileFilterDropdown) fileFilterDropdown.innerHTML = '<option value="all">All Files</option>';
+                if(panelFileFilterDropdown) panelFileFilterDropdown.innerHTML = '<option value="all">All Files</option>';
                 if(resultsList) resultsList.innerHTML = '<p style="padding: 10px;">Keyword not found.</p>';
                 renderPage(currentPage, null);
             } else {
-                searchResults.forEach(result => {
-                    const option = document.createElement('option');
-                    option.value = result.page;
-                    option.innerHTML = `Page ${result.page}: ${result.summary}`;
-                    
-                    // --- THIS IS THE FIX ---
-                    // Append a CLONE of the option to each dropdown
-                    if(resultsDropdown) resultsDropdown.appendChild(option.cloneNode(true));
-                    if(panelResultsDropdown) panelResultsDropdown.appendChild(option.cloneNode(true));
-
-                    const resultItem = document.createElement('div');
-                    resultItem.className = 'result-item';
-                    resultItem.innerHTML = `<canvas class="thumbnail-canvas"></canvas><div class="page-info">Page ${result.page} (File: ${result.docName})</div><div class="context-snippet">${result.summary}</div>`;
-                    resultItem.addEventListener('click', () => goToPage(result.page, pattern));
-                    if(resultsList) resultsList.appendChild(resultItem);
-                    
-                    const thumbnailCanvas = resultItem.querySelector('.thumbnail-canvas');
-                    renderThumbnail(result.docIndex, result.localPage, thumbnailCanvas);
-                });
-
+                updateFilterAndResults('all'); // Populate all results initially
                 if (searchResults.length > 0) {
                     goToPage(searchResults[0].page, pattern);
                 }
@@ -632,16 +631,98 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('results-bar-visible', hasResults);
         if (appContainer) appContainer.classList.toggle('results-panel-visible', hasResults);
     }
+    
+    // NEW FUNCTION for cascading dropdowns
+    function updateFilterAndResults(selectedFile = 'all') {
+        currentFileFilter = selectedFile;
+    
+        // 1. Get unique doc names and populate file filters
+        const docNames = [...new Set(searchResults.map(r => r.docName))];
+        const fileDropdowns = [fileFilterDropdown, panelFileFilterDropdown];
+    
+        fileDropdowns.forEach(dropdown => {
+            if (!dropdown) return;
+            dropdown.innerHTML = '<option value="all">All Files</option>';
+            docNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                dropdown.appendChild(option);
+            });
+            dropdown.value = currentFileFilter; // Set the current selection
+        });
+    
+        // 2. Filter search results based on selection
+        const filteredResults = currentFileFilter === 'all'
+            ? searchResults
+            : searchResults.filter(r => r.docName === currentFileFilter);
+    
+        // 3. Populate summary dropdowns
+        const summaryDropdowns = [resultsDropdown, panelResultsDropdown];
+        summaryDropdowns.forEach(dropdown => {
+            if (!dropdown) return;
+            dropdown.innerHTML = ''; // Clear previous results
+            if (filteredResults.length === 0) {
+                dropdown.innerHTML = '<option value="">No results for this file</option>';
+            } else {
+                filteredResults.forEach(result => {
+                    const option = document.createElement('option');
+                    option.value = result.page;
+                    option.innerHTML = `Page ${result.page}: ${result.summary}`;
+                    dropdown.appendChild(option);
+                });
+            }
+        });
+        
+        // 4. Populate results list panel
+        if (resultsList) {
+            resultsList.innerHTML = ''; // Clear previous list
+            if (filteredResults.length === 0) {
+                 resultsList.innerHTML = '<p style="padding: 10px;">No results found for this file.</p>';
+            } else {
+                filteredResults.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.innerHTML = `<canvas class="thumbnail-canvas"></canvas><div class="page-info">Page ${result.page} (File: ${result.docName})</div><div class="context-snippet">${result.summary}</div>`;
+                    resultItem.addEventListener('click', () => goToPage(result.page, getPatternFromSearchInput()));
+                    resultsList.appendChild(resultItem);
+                    const thumbnailCanvas = resultItem.querySelector('.thumbnail-canvas');
+                    renderThumbnail(result.docIndex, result.localPage, thumbnailCanvas);
+                });
+            }
+        }
+        
+        // 5. If a page is showing, update its selection in the new dropdown
+        const currentPageResult = filteredResults.find(r => r.page === currentPage);
+        if (currentPageResult) {
+            summaryDropdowns.forEach(d => { if(d) d.value = currentPage; });
+        }
+    }
+
 
     if (searchActionButton) searchActionButton.addEventListener('click', searchKeyword);
     if (searchInputElem) searchInputElem.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchActionButton.click(); } });
     
+    // Summary dropdown listeners
     if (resultsDropdown) {
         resultsDropdown.addEventListener('change', () => goToPageDropdown(resultsDropdown.value));
     }
     if (panelResultsDropdown) {
         panelResultsDropdown.addEventListener('change', () => goToPageDropdown(panelResultsDropdown.value));
     }
+
+    // NEW file filter dropdown listeners
+    if (fileFilterDropdown) {
+        fileFilterDropdown.addEventListener('change', (e) => {
+            updateFilterAndResults(e.target.value);
+        });
+    }
+    if (panelFileFilterDropdown) {
+        panelFileFilterDropdown.addEventListener('change', (e) => {
+            updateFilterAndResults(e.target.value);
+        });
+    }
+
 
     function goToPageDropdown(pageNumStr) {
         if (pageNumStr) {
@@ -1081,9 +1162,84 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pdfContainer) {
         pdfContainer.addEventListener('click', handleParagraphSelection);
     }
+    
+    // NEW FUNCTION to rerender thumbnails after resize
+    function rerenderAllThumbnails() {
+        if (!resultsList) return;
+        const resultItems = resultsList.querySelectorAll('.result-item');
+        
+        const filteredResults = currentFileFilter === 'all'
+            ? searchResults
+            : searchResults.filter(r => r.docName === currentFileFilter);
+
+        if (resultItems.length !== filteredResults.length) {
+            console.warn("Mismatch between DOM results and filtered results. Skipping thumbnail rerender.");
+            return;
+        }
+
+        resultItems.forEach((item, index) => {
+            const resultData = filteredResults[index];
+            const canvasEl = item.querySelector('.thumbnail-canvas');
+            if (resultData && canvasEl) {
+                const ctx = canvasEl.getContext('2d');
+                ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+                renderThumbnail(resultData.docIndex, resultData.localPage, canvasEl);
+            }
+        });
+    }
+
+    // NEW FUNCTION to initialize the resizer logic
+    function initResizer() {
+        if (!resizer || !searchResultsPanel) return;
+
+        let x = 0;
+        let panelWidth = 0;
+
+        const mouseDownHandler = function (e) {
+            e.preventDefault();
+            x = e.clientX;
+            const panelStyles = window.getComputedStyle(searchResultsPanel);
+            panelWidth = parseInt(panelStyles.width, 10);
+            
+            document.body.style.userSelect = 'none';
+            document.body.style.pointerEvents = 'none';
+
+            document.addEventListener('mousemove', mouseMoveHandler);
+            document.addEventListener('mouseup', mouseUpHandler);
+        };
+
+        const mouseMoveHandler = function (e) {
+            const dx = e.clientX - x;
+            const newWidth = panelWidth - dx;
+            
+            const minWidth = 200;
+            const maxWidth = mainContent.clientWidth * 0.7; // 70% of parent
+            if (newWidth > minWidth && newWidth < maxWidth) {
+                 searchResultsPanel.style.flexBasis = `${newWidth}px`;
+            }
+        };
+
+        const mouseUpHandler = function () {
+            document.body.style.userSelect = '';
+            document.body.style.pointerEvents = '';
+
+            document.removeEventListener('mousemove', mouseMoveHandler);
+            document.removeEventListener('mouseup', mouseUpHandler);
+
+            if (pdfDocs.length > 0) {
+                renderPage(currentPage, getPatternFromSearchInput());
+            }
+            if (searchResults.length > 0) {
+                rerenderAllThumbnails();
+            }
+        };
+
+        resizer.addEventListener('mousedown', mouseDownHandler);
+    }
 
     initLocalMagnifier();
     updatePageControls();
+    initResizer(); // Initialize the resizer
 
     async function initializeApp() {
         try {
