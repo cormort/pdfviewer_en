@@ -1,4 +1,4 @@
-// script.js - English UI Version
+// script.js - English UI Version (Fixed)
 
 import { initDB, saveFiles, getFiles } from './db.js';
 
@@ -40,6 +40,7 @@ const UI_STRINGS = {
     searchErrorPanel: '<p style="padding: 10px;">An error occurred during the search.</p>',
     searchExecutionError: 'An error occurred during the search.',
     noResultsInFile: 'No search results in this file',
+    noResultsInFilePanel: '<p style="padding: 10px;">No results found in this file.</p>',
     resultSummary: (page, summary) => `Page ${page}: ${summary}`,
     resultPageInfo: (page, docName) => `Page ${page} (File: ${docName})`,
 
@@ -66,6 +67,10 @@ const UI_STRINGS = {
     copyPageTextDisabled: 'Enable Text Selection (TS) mode first',
     paragraphSelection: 'Enable Paragraph Selection',
     paragraphSelectionDisabled: 'Enable Text Selection (TS) mode first',
+
+    // Page Indicator
+    pageIndicator: (currentPage, totalPages) => `Page ${currentPage} / ${totalPages}`,
+    fileIndicator: (fileName) => ` (File: ${fileName})`,
 
     // Console Logs
     initSuccess: '✓ PDF Reader optimized and initialized.',
