@@ -1,4 +1,4 @@
-// script.js - Optimized Version
+// script.js - Optimized Version (Zoom Controls Fixed)
 
 import { initDB, saveFiles, getFiles } from './db.js';
 
@@ -70,8 +70,9 @@ const localMagnifierZoomControlsDiv = document.getElementById('local-magnifier-z
 const localMagnifierZoomSelector = document.getElementById('local-magnifier-zoom-selector');
 
 // Zoom Controls
-const zoomOutBtn = document.getElementById('zoom-out-btn');
-const zoomInBtn = document.getElementById('zoom-in-btn');
+// *** 修正：全部改用 querySelectorAll 來選取 class ***
+const zoomOutBtns = document.querySelectorAll('.zoom-out-btn');
+const zoomInBtns = document.querySelectorAll('.zoom-in-btn');
 const fitWidthBtns = document.querySelectorAll('.fit-width-btn');
 const fitHeightBtns = document.querySelectorAll('.fit-height-btn');
 const zoomLevelDisplay = document.getElementById('zoom-level-display');
@@ -371,7 +372,8 @@ function updatePageControls() {
         goToFirstPageBtn, prevPageBtn, nextPageBtn, pageToGoInput, goToPageBtn, 
         pageSlider, toggleUnderlineBtn, toggleHighlighterBtn, clearHighlighterBtn, 
         toggleTextSelectionBtn, sharePageBtn, exportPageBtn, toggleLocalMagnifierBtn, 
-        localMagnifierZoomSelector, copyPageTextBtn, zoomInBtn, zoomOutBtn,
+        localMagnifierZoomSelector, copyPageTextBtn,
+        ...zoomInBtns, ...zoomOutBtns, // <-- 修正：使用新的陣列
         ...fitWidthBtns, ...fitHeightBtns, toggleParagraphSelectionBtn
     ];
     
@@ -1357,6 +1359,7 @@ window.addEventListener('resize', () => {
 });
 
 // === Zoom Controls ===
+// *** 修正：全部改用 forEach 迴圈 ***
 fitWidthBtns?.forEach(btn => {
     btn.addEventListener('click', () => {
         currentZoomMode = 'width';
@@ -1371,16 +1374,20 @@ fitHeightBtns?.forEach(btn => {
     });
 });
 
-zoomInBtn?.addEventListener('click', () => {
-    currentZoomMode = 'custom';
-    currentScale += 0.2;
-    renderPage(currentPage, getPatternFromSearchInput());
+zoomInBtns?.forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentZoomMode = 'custom';
+        currentScale += 0.2;
+        renderPage(currentPage, getPatternFromSearchInput());
+    });
 });
 
-zoomOutBtn?.addEventListener('click', () => {
-    currentZoomMode = 'custom';
-    currentScale = Math.max(0.1, currentScale - 0.2);
-    renderPage(currentPage, getPatternFromSearchInput());
+zoomOutBtns?.forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentZoomMode = 'custom';
+        currentScale = Math.max(0.1, currentScale - 0.2);
+        renderPage(currentPage, getPatternFromSearchInput());
+    });
 });
 
 // === Search Result Navigation ===
@@ -1779,11 +1786,11 @@ document.addEventListener('keydown', e => {
         case '+':
         case '=':
             e.preventDefault();
-            zoomInBtn?.click();
+            zoomInBtns[0]?.click(); // Trigger the first button in the list
             break;
         case '-':
             e.preventDefault();
-            zoomOutBtn?.click();
+            zoomOutBtns[0]?.click(); // Trigger the first button in the list
             break;
         case '0':
             if (e.ctrlKey || e.metaKey) {
