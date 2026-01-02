@@ -1152,14 +1152,22 @@ async function renderThumbnail(docIndex, localPageNum, canvasEl) {
         const doc = pdfDocs[docIndex];
         if (!doc || !canvasEl) return;
 
+        // Guard: If parent width is 0 or too small, wait and retry
+        const parentWidth = canvasEl.parentElement?.clientWidth || 0;
+        if (parentWidth <= 30) {
+            setTimeout(() => renderThumbnail(docIndex, localPageNum, canvasEl), 150);
+            return;
+        }
+
         const page = await doc.getPage(localPageNum);
         const viewport = page.getViewport({ scale: 1 });
-        const scale = (canvasEl.parentElement.clientWidth - 20) / viewport.width;
+        const scale = (parentWidth - 20) / viewport.width;
         const scaledViewport = page.getViewport({ scale });
         const thumbnailCtx = canvasEl.getContext('2d');
 
         canvasEl.height = scaledViewport.height;
         canvasEl.width = scaledViewport.width;
+
 
         const renderContext = {
             canvasContext: thumbnailCtx,
@@ -1188,6 +1196,7 @@ function initThumbnailObserver() {
         });
     }, { root: resultsList, rootMargin: '0px 0px 200px 0px' });
 }
+
 
 // === Search Function ===
 function searchKeyword() {
