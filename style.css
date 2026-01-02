@@ -165,6 +165,14 @@ body {
     z-index: 10;
 }
 
+#notes-layer.active {
+    pointer-events: auto;
+}
+
+#canvas-wrapper.notes-mode #notes-layer {
+    cursor: cell;
+}
+
 .note-marker {
     position: absolute;
     width: 24px;
@@ -190,6 +198,12 @@ body {
 .note-marker:hover {
     transform: translate(-50%, -50%) scale(1.2);
     box-shadow: var(--shadow-lg);
+    z-index: 100;
+}
+
+/* Modal specific tweaks if needed */
+#note-modal {
+    z-index: 2000;
 }
 
 /* Magnifier Glass */
