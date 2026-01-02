@@ -903,19 +903,21 @@ pdfContainer?.addEventListener('click', (e) => {
         !toolbar?.contains(e.target)) {
         appContainer.classList.remove('menu-active');
     }
+});
 
-    // Handles note adding in notes mode
-    if (notesModeActive) {
-        // Prevent adding note when clicking on existing interactive elements
-        if (e.target.classList.contains('note-marker') || e.target.closest('#note-modal')) return;
+// Dedicated listener for adding notes on the notes layer
+notesLayer?.addEventListener('click', (e) => {
+    if (!notesModeActive) return;
 
-        const rect = canvasWrapper.getBoundingClientRect();
-        const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
-        const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+    // Prevent adding note when clicking on existing markers
+    if (e.target.classList.contains('note-marker')) return;
 
-        currentNotePosition = { x: xPercent, y: yPercent };
-        openNoteModal();
-    }
+    const rect = canvasWrapper.getBoundingClientRect();
+    const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+
+    currentNotePosition = { x: xPercent, y: yPercent };
+    openNoteModal();
 });
 
 // === Page Rendering ===
@@ -1622,6 +1624,8 @@ function deactivateAllModes(except = null) {
         notesModeActive = false;
         if (toggleNotesBtn) toggleNotesBtn.classList.remove('active');
         if (pdfContainer) pdfContainer.classList.remove('notes-mode');
+        if (canvasWrapper) canvasWrapper.classList.remove('notes-mode');
+        if (notesLayer) notesLayer.classList.remove('active');
     }
     updatePageControls();
 }
@@ -1644,6 +1648,8 @@ toggleNotesBtn?.addEventListener('click', () => {
     if (!wasActive) {
         notesModeActive = true;
         if (pdfContainer) pdfContainer.classList.add('notes-mode');
+        if (canvasWrapper) canvasWrapper.classList.add('notes-mode');
+        if (notesLayer) notesLayer.classList.add('active');
     }
     updatePageControls();
 });
