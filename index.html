@@ -6,13 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDF Pro Studio - Keyword Search & Annotations</title>
   <link rel="stylesheet" href="style.css">
+  <script type="module">
+    // Load PDF.js from local files (ES Module)
+    import * as pdfjsLib from './lib/pdfjs/pdf.mjs';
+    window.pdfjsLib = pdfjsLib;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = './lib/pdfjs/pdf.worker.mjs';
+  </script>
 </head>
 
 <body>
   <div id="app-container">
-    <!-- Toolbar Toggle for Mobile -->
-    <div id="toolbar-toggle-tab">☰ Menu</div>
-
     <header id="toolbar">
       <div class="title-section">
         <div class="app-logo">PDF</div>
@@ -34,6 +37,12 @@
         <button id="search-action-button" class="btn-primary">Search</button>
         <select id="fileFilterDropdown">
           <option value="all">All Files</option>
+        </select>
+      </div>
+
+      <div class="file-switch-section">
+        <select id="fileSwitchDropdown" title="Switch between loaded files">
+          <option value="">-- Select File --</option>
         </select>
       </div>
 
@@ -80,8 +89,11 @@
       <div id="resizer"></div>
 
       <aside id="search-results-panel">
+        <button id="results-toggle-btn" class="results-toggle-btn" title="Toggle Search Results">
+          <span class="toggle-icon">◀</span>
+        </button>
         <div class="results-header">
-          <h3>🔍 Search Results</h3>
+          <h3>🔍 Results</h3>
           <div id="panel-dropdown-container">
             <select id="panelFileFilterDropdown">
               <option value="all">All Files</option>
@@ -103,36 +115,40 @@
       </button>
 
       <div class="fab-menu" id="fab-speed-dial">
-        <button id="notes-mode-btn" class="btn-secondary" title="Add Note (Click PDF)">
+        <button id="toggle-underline-btn" class="btn-secondary" title="Toggle Search Underlines">
+          <span class="icon">S̲</span>
+        </button>
+        <div class="fab-divider"></div>
+        <button id="toggle-notes-btn" class="btn-secondary" title="Add Note (Click PDF)">
           <span class="icon">📌</span>
         </button>
         <button id="view-notes-btn" class="btn-secondary" title="All Page Notes">
           <span class="icon">📝</span>
         </button>
-        <button id="highlight-btn" class="btn-secondary" title="Highlight Selection">
+        <button id="toggle-highlighter-btn" class="btn-secondary" title="Highlight Selection">
           <span class="icon">🖍️</span>
         </button>
-        <button id="clear-marks-btn" class="btn-secondary" title="Clear All Marks">
+        <button id="clear-highlighter-btn" class="btn-secondary" title="Clear All Marks">
           <span class="icon">🧹</span>
         </button>
         <div class="fab-divider"></div>
-        <button id="select-text-btn" class="btn-secondary" title="Select Text">
+        <button id="toggle-text-selection-btn" class="btn-secondary" title="Select Text">
           <span class="icon">📄</span>
         </button>
-        <button id="select-para-btn" class="btn-secondary" title="Select Paragraph">
+        <button id="toggle-paragraph-selection-btn" class="btn-secondary" title="Select Paragraph">
           <span class="icon">¶</span>
         </button>
-        <button id="copy-text-btn" class="btn-secondary" title="Copy Selected">
+        <button id="copy-page-text-btn" class="btn-secondary" title="Copy Selected">
           <span class="icon">📋</span>
         </button>
         <div class="fab-divider"></div>
-        <button id="share-btn" class="btn-secondary" title="Share PDF">
+        <button id="share-page-btn" class="btn-secondary" title="Share PDF">
           <span class="icon">🔗</span>
         </button>
-        <button id="export-btn" class="btn-secondary" title="Export to Word/Excel">
+        <button id="export-page-btn" class="btn-secondary" title="Export to Word/Excel">
           <span class="icon">📤</span>
         </button>
-        <button id="magnifier-btn" class="btn-secondary" title="Magnifier (Click PDF)">
+        <button id="toggle-local-magnifier-btn" class="btn-secondary" title="Magnifier (Click PDF)">
           <span class="icon">🔍</span>
         </button>
       </div>
@@ -210,7 +226,7 @@
   </div>
 
   <!-- Scripts -->
-  <script type="module" src="./script.js"></script>
+  <script type="module" src="./script.js?v=2"></script>
 </body>
 
 </html>
