@@ -1658,7 +1658,7 @@ viewNotesBtn?.addEventListener('click', () => {
     if (!pdfDocs.length) return;
     notesListPanel?.classList.toggle('active');
     if (notesListPanel?.classList.contains('active')) {
-        updateNotesList();
+        showNotesList();
     }
 });
 
