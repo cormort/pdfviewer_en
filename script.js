@@ -1,6 +1,8 @@
-// script.js - Optimized Version (Zoom Controls Fixed)
-
 import { initDB, saveFiles, getFiles, saveNote, getNotes, updateNote, deleteNote, exportAllNotes, importAllNotes, getNotesForFile } from './db.js';
+import * as pdfjsLib from './lib/pdfjs/pdf.mjs';
+
+// Configure PDF.js Worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = './lib/pdfjs/pdf.worker.mjs';
 
 // === Global Variables ===
 let pdfDocs = [];
@@ -160,11 +162,6 @@ function resetApp() {
 // === Core Function: Load and Process Files ===
 async function loadAndProcessFiles(files) {
     if (!files?.length) return;
-
-    if (typeof pdfjsLib === 'undefined') {
-        showNotification('Failed to load PDF library. Please refresh the page.', 'error');
-        return;
-    }
 
     // Show loading animation
     showLoadingOverlay('Loading PDFs...');
