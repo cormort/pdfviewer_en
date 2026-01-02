@@ -909,10 +909,24 @@ toolbarToggleTab?.addEventListener('click', () => {
 });
 
 pdfContainer?.addEventListener('click', (e) => {
+    // Mobile menu auto-hide
     if (window.innerWidth <= 768 &&
         appContainer?.classList.contains('menu-active') &&
         !toolbar?.contains(e.target)) {
         appContainer.classList.remove('menu-active');
+    }
+
+    // Handles note adding in notes mode
+    if (notesModeActive) {
+        // Prevent adding note when clicking on existing interactive elements
+        if (e.target.classList.contains('note-marker') || e.target.closest('#note-modal')) return;
+
+        const rect = canvasWrapper.getBoundingClientRect();
+        const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+        const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+
+        currentNotePosition = { x: xPercent, y: yPercent };
+        openNoteModal();
     }
 });
 
@@ -1635,6 +1649,25 @@ toggleHighlighterBtn?.addEventListener('click', () => {
     updatePageControls();
 });
 
+toggleNotesBtn?.addEventListener('click', () => {
+    if (!pdfDocs.length) return;
+    const wasActive = notesModeActive;
+    deactivateAllModes();
+    if (!wasActive) {
+        notesModeActive = true;
+        if (pdfContainer) pdfContainer.classList.add('notes-mode');
+    }
+    updatePageControls();
+});
+
+viewNotesBtn?.addEventListener('click', () => {
+    if (!pdfDocs.length) return;
+    notesListPanel?.classList.toggle('active');
+    if (notesListPanel?.classList.contains('active')) {
+        updateNotesList();
+    }
+});
+
 toggleTextSelectionBtn?.addEventListener('click', () => {
     if (!pdfDocs.length) return;
     const wasActive = textSelectionModeActive;
@@ -1679,6 +1712,17 @@ clearHighlighterBtn?.addEventListener('click', () => {
     if (!pdfDocs.length) return;
     drawingCtx?.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
     showNotification('Highlighter marks cleared', 'success');
+});
+
+// Note Modal Actions
+saveNoteBtn?.addEventListener('click', saveCurrentNote);
+cancelNoteBtn?.addEventListener('click', closeNoteModalFunc);
+closeNoteModal?.addEventListener('click', closeNoteModalFunc);
+deleteNoteBtn?.addEventListener('click', deleteCurrentNote);
+
+// Close Notes List
+closeNotesList?.addEventListener('click', () => {
+    notesListPanel?.classList.remove('active');
 });
 
 copyPageTextBtn?.addEventListener('click', async () => {
