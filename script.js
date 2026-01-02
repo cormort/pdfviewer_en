@@ -1,8 +1,11 @@
 import { initDB, saveFiles, getFiles, saveNote, getNotes, updateNote, deleteNote, exportAllNotes, importAllNotes, getNotesForFile } from './db.js';
-import * as pdfjsLib from './lib/pdfjs/pdf.mjs';
 
-// Configure PDF.js Worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = './lib/pdfjs/pdf.worker.mjs';
+// PDF.js is configured in index.html via ES module import
+// The global pdfjsLib is set there, we just verify it's available
+if (typeof pdfjsLib === 'undefined') {
+    console.error('PDF.js library not loaded! Check index.html script configuration.');
+}
+
 
 // === Global Variables ===
 let pdfDocs = [];
@@ -48,6 +51,7 @@ const searchInputElem = document.getElementById('searchInput');
 const searchActionButton = document.getElementById('search-action-button');
 const searchResultsPanel = document.getElementById('search-results-panel');
 const resultsList = document.getElementById('results-list');
+const fileSwitchDropdown = document.getElementById('fileSwitchDropdown');
 
 // Tool Buttons
 const exportPageBtn = document.getElementById('export-page-btn');
@@ -165,14 +169,28 @@ async function loadAndProcessFiles(files) {
 
     // Show loading animation
     showLoadingOverlay('Loading PDFs...');
+    console.log('Starting loadAndProcessFiles...');
 
-    resetApp();
+    try {
+        resetApp();
+        console.log('App reset complete.');
+    } catch (e) {
+        console.error('Error in resetApp:', e);
+        throw e;
+    }
 
     currentZoomMode = 'height';
     if (searchInputElem) searchInputElem.value = '';
     showSearchResultsHighlights = true;
     textLayerDivGlobal?.classList.remove('highlights-hidden');
-    deactivateAllModes();
+
+    try {
+        deactivateAllModes();
+        console.log('Modes deactivated.');
+    } catch (e) {
+        console.error('Error in deactivateAllModes:', e);
+        throw e;
+    }
 
     const loadingPromises = Array.from(files).map(file => {
         return new Promise((resolve) => {
@@ -183,7 +201,7 @@ async function loadAndProcessFiles(files) {
             const reader = new FileReader();
             reader.onload = function () {
                 const typedarray = new Uint8Array(this.result);
-                pdfjsLib.getDocument({
+                window.pdfjsLib.getDocument({
                     data: typedarray,
                     isEvalSupported: false,
                     enableXfa: false
@@ -231,13 +249,16 @@ async function loadAndProcessFiles(files) {
 
         renderPage(1);
 
+        // Update file switch dropdown
+        updateFileSwitchDropdown();
+
         if (fileInputLabel) fileInputLabel.style.display = 'none';
         if (clearSessionBtn) clearSessionBtn.style.display = 'inline-block';
         if (restoreSessionBtn) restoreSessionBtn.style.display = 'none';
 
     } catch (error) {
         hideLoadingOverlay();
-        showNotification('Error reading PDF files: ' + error, 'error');
+        showNotification('Error reading PDF files: ' + error.message, 'error');
         console.error('Error during file processing:', error);
         resetApp();
     }
@@ -333,7 +354,7 @@ fileInput?.addEventListener('change', async function (e) {
         }
     } catch (loadError) {
         console.error("Failed to load or process PDF files:", loadError);
-        showNotification("Error loading or processing PDF files", 'error');
+        showNotification("Error loading PDF: " + loadError.message, 'error');
     }
 });
 
@@ -387,13 +408,13 @@ async function renderNotes() {
 function openNoteModal(note = null) {
     currentEditingNote = note;
     if (note) {
-        noteModalTitle.textContent = 'Edit Note';
-        noteContentInput.value = note.content;
-        deleteNoteBtn.style.display = 'block';
+        if (noteModalTitle) noteModalTitle.textContent = 'Edit Note';
+        if (noteContentInput) noteContentInput.value = note.content;
+        if (deleteNoteBtn) deleteNoteBtn.style.display = 'block';
     } else {
-        noteModalTitle.textContent = 'Add Note';
-        noteContentInput.value = '';
-        deleteNoteBtn.style.display = 'none';
+        if (noteModalTitle) noteModalTitle.textContent = 'Add Note';
+        if (noteContentInput) noteContentInput.value = '';
+        if (deleteNoteBtn) deleteNoteBtn.style.display = 'none';
     }
     noteModal?.classList.add('active');
     setTimeout(() => noteContentInput?.focus(), 100);
@@ -601,37 +622,29 @@ function initLocalMagnifier() {
 }
 
 function updateLocalMagnifier(clientX, clientY) {
-    if (!localMagnifierEnabled || !canvas || !magnifierGlass || !localMagnifierCtx || !pdfContainer) {
+    const canvasWrapper = document.getElementById('canvas-wrapper');
+    if (!localMagnifierEnabled || !canvas || !magnifierGlass || !localMagnifierCtx || !canvasWrapper) {
         if (magnifierGlass) magnifierGlass.style.display = 'none';
         return;
     }
 
-    const pdfContainerRect = pdfContainer.getBoundingClientRect();
-    const pointXInContainer = clientX - pdfContainerRect.left;
-    const pointYInContainer = clientY - pdfContainerRect.top;
-    const canvasRectInContainer = {
-        left: canvas.offsetLeft,
-        top: canvas.offsetTop,
-        right: canvas.offsetLeft + canvas.offsetWidth,
-        bottom: canvas.offsetTop + canvas.offsetHeight
-    };
+    const wrapperRect = canvasWrapper.getBoundingClientRect();
+    const pointXInWrapper = clientX - wrapperRect.left;
+    const pointYInWrapper = clientY - wrapperRect.top;
 
-    if (pointXInContainer < canvasRectInContainer.left ||
-        pointXInContainer > canvasRectInContainer.right ||
-        pointYInContainer < canvasRectInContainer.top ||
-        pointYInContainer > canvasRectInContainer.bottom) {
+    // Check if within canvas boundaries
+    if (pointXInWrapper < 0 || pointXInWrapper > canvas.offsetWidth ||
+        pointYInWrapper < 0 || pointYInWrapper > canvas.offsetHeight) {
         magnifierGlass.style.display = 'none';
         return;
     }
 
     magnifierGlass.style.display = 'block';
 
-    const pointXOnCanvasCSS = pointXInContainer - canvas.offsetLeft;
-    const pointYOnCanvasCSS = pointYInContainer - canvas.offsetTop;
     const scaleX = canvas.width / canvas.offsetWidth;
     const scaleY = canvas.height / canvas.offsetHeight;
-    const srcX = pointXOnCanvasCSS * scaleX;
-    const srcY = pointYOnCanvasCSS * scaleY;
+    const srcX = pointXInWrapper * scaleX;
+    const srcY = pointYInWrapper * scaleY;
 
     const srcRectCSSWidth = LOCAL_MAGNIFIER_SIZE / LOCAL_MAGNIFIER_ZOOM_LEVEL;
     const srcRectCSSHeight = LOCAL_MAGNIFIER_SIZE / LOCAL_MAGNIFIER_ZOOM_LEVEL;
@@ -643,6 +656,8 @@ function updateLocalMagnifier(clientX, clientY) {
     localMagnifierCtx.clearRect(0, 0, LOCAL_MAGNIFIER_SIZE, LOCAL_MAGNIFIER_SIZE);
     localMagnifierCtx.fillStyle = 'white';
     localMagnifierCtx.fillRect(0, 0, LOCAL_MAGNIFIER_SIZE, LOCAL_MAGNIFIER_SIZE);
+
+    // Use canvas directly as source
     localMagnifierCtx.drawImage(
         canvas,
         srcRectX, srcRectY,
@@ -652,8 +667,8 @@ function updateLocalMagnifier(clientX, clientY) {
     );
 
     if (drawingCanvas?.width > 0 && drawingCanvas?.height > 0) {
-        const srcDrawRectX = pointXOnCanvasCSS - (srcRectCSSWidth / 2);
-        const srcDrawRectY = pointYOnCanvasCSS - (srcRectCSSHeight / 2);
+        const srcDrawRectX = pointXInWrapper - (srcRectCSSWidth / 2);
+        const srcDrawRectY = pointYInWrapper - (srcRectCSSHeight / 2);
         localMagnifierCtx.drawImage(
             drawingCanvas,
             srcDrawRectX, srcDrawRectY,
@@ -663,12 +678,14 @@ function updateLocalMagnifier(clientX, clientY) {
         );
     }
 
-    let magnifierTop = pointYInContainer - LOCAL_MAGNIFIER_SIZE - 10;
-    let magnifierLeft = pointXInContainer - (LOCAL_MAGNIFIER_SIZE / 2);
-    magnifierTop = Math.max(0, Math.min(magnifierTop, pdfContainer.clientHeight - LOCAL_MAGNIFIER_SIZE - 5));
-    magnifierLeft = Math.max(0, Math.min(magnifierLeft, pdfContainer.clientWidth - LOCAL_MAGNIFIER_SIZE - 5));
-    magnifierGlass.style.top = `${magnifierTop + pdfContainer.scrollTop} px`;
-    magnifierGlass.style.left = `${magnifierLeft + pdfContainer.scrollLeft} px`;
+    // Position glass relative to its parent (canvas-wrapper)
+    const magnifierTop = pointYInWrapper - (LOCAL_MAGNIFIER_SIZE / 2);
+    const magnifierLeft = pointXInWrapper - (LOCAL_MAGNIFIER_SIZE / 2);
+
+    // Offset the glass slightly to be above the cursor or following it
+    // Here we'll center it on the cursor for direct feedback
+    magnifierGlass.style.top = `${magnifierTop}px`;
+    magnifierGlass.style.left = `${magnifierLeft}px`;
 }
 
 // === UI Control Updates ===
@@ -684,6 +701,80 @@ function updateZoomControls() {
         btn.classList.toggle('active', currentZoomMode === 'height');
     });
 }
+
+// === File Switch Dropdown ===
+function updateFileSwitchDropdown() {
+    if (!fileSwitchDropdown) return;
+
+    // Clear existing options
+    fileSwitchDropdown.innerHTML = '';
+
+    if (pdfDocs.length === 0) {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '-- No Files --';
+        fileSwitchDropdown.appendChild(defaultOption);
+        fileSwitchDropdown.disabled = true;
+        return;
+    }
+
+    fileSwitchDropdown.disabled = false;
+
+    // Build unique file list with their starting page
+    const fileList = [];
+    let pageOffset = 0;
+    pageMap.forEach((mapping, index) => {
+        if (mapping.localPage === 1) {
+            fileList.push({
+                docIndex: mapping.docIndex,
+                docName: mapping.docName,
+                startPage: index + 1  // Global page number (1-indexed)
+            });
+        }
+    });
+
+    // Add options for each file
+    fileList.forEach((file, idx) => {
+        const option = document.createElement('option');
+        option.value = file.startPage;
+        // Truncate long names
+        let displayName = file.docName.replace(/\.pdf$/i, '');
+        if (displayName.length > 30) {
+            displayName = displayName.substring(0, 27) + '...';
+        }
+        option.textContent = `${idx + 1}. ${displayName}`;
+        option.title = file.docName;
+        fileSwitchDropdown.appendChild(option);
+    });
+
+    // Set current selection based on current page
+    updateFileSwitchSelection();
+}
+
+function updateFileSwitchSelection() {
+    if (!fileSwitchDropdown || pdfDocs.length === 0) return;
+
+    const docInfo = getDocAndLocalPage(currentPage);
+    if (!docInfo) return;
+
+    // Find the start page of current file
+    let startPage = 1;
+    for (let i = 0; i < pageMap.length; i++) {
+        if (pageMap[i].docIndex === docInfo.docIndex && pageMap[i].localPage === 1) {
+            startPage = i + 1;
+            break;
+        }
+    }
+    fileSwitchDropdown.value = startPage;
+}
+
+// File switch dropdown event listener
+fileSwitchDropdown?.addEventListener('change', e => {
+    const startPage = parseInt(e.target.value);
+    if (!isNaN(startPage) && startPage > 0) {
+        goToPage(startPage, getPatternFromSearchInput());
+    }
+});
 
 function updatePageControls() {
     const fabContainer = document.getElementById('floating-action-buttons');
@@ -709,7 +800,7 @@ function updatePageControls() {
     });
 
     if (!hasDocs) {
-        pageNumDisplay.textContent = '- / -';
+        if (pageNumDisplay) pageNumDisplay.textContent = '- / -';
         if (pageToGoInput) {
             pageToGoInput.value = '';
             pageToGoInput.max = 1;
@@ -745,8 +836,8 @@ function updatePageControls() {
         fullDisplayText += ` (${displayDocName})`;
     }
 
-    pageNumDisplay.textContent = fullDisplayText;
-    pageNumDisplay.title = `${pageInfoText} (File: ${fullDocNameForTitle})`;
+    if (pageNumDisplay) pageNumDisplay.textContent = fullDisplayText;
+    if (pageNumDisplay) pageNumDisplay.title = `${pageInfoText} (File: ${fullDocNameForTitle})`;
 
     if (pageToGoInput) {
         pageToGoInput.value = currentPage;
@@ -809,6 +900,7 @@ function updatePageControls() {
 
     updateResultsNav();
     updateZoomControls();
+    updateFileSwitchSelection();
 }
 
 // === Toolbar Toggle ===
@@ -935,41 +1027,63 @@ function renderPage(globalPageNum, highlightPattern = null) {
 }
 
 function renderTextLayer(page, viewport, highlightPattern) {
-    if (!textLayerDivGlobal || !pdfjsLib?.Util) return Promise.resolve();
+    if (!textLayerDivGlobal) return Promise.resolve();
+
+    // Clear existing text layer
+    textLayerDivGlobal.innerHTML = '';
+
+    // Check if pdfjsLib.Util is available
+    if (!pdfjsLib?.Util) {
+        console.warn('pdfjsLib.Util not available, skipping text layer rendering');
+        return Promise.resolve();
+    }
 
     return page.getTextContent().then(textContent => {
         currentPageTextContent = textContent;
-        textLayerDivGlobal.innerHTML = '';
+
+        // Handle empty text content (scanned PDFs / image-based PDFs)
+        if (!textContent || !textContent.items || textContent.items.length === 0) {
+            console.log('No text content found on this page (possibly a scanned PDF)');
+            return;
+        }
 
         textContent.items.forEach(item => {
+            // Skip empty strings
+            if (!item.str || item.str.trim() === '') return;
+
             const textDiv = document.createElement('div');
             const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
             let defaultFontSize = item.height * viewport.scale;
             if (defaultFontSize <= 0) defaultFontSize = 10;
 
-            const style = `
+            // Set inline style for positioning
+            textDiv.style.cssText = `
                 position: absolute;
                 left: ${tx[4]}px;
                 top: ${tx[5] - (item.height * viewport.scale)}px;
                 height: ${item.height * viewport.scale}px;
-                width: ${item.width * viewport.scale}px;
                 font-size: ${defaultFontSize}px;
                 line-height: 1;
                 white-space: pre;
                 font-family: ${item.fontName ? item.fontName.split(',')[0] : 'sans-serif'};
+                transform-origin: 0% 0%;
             `;
 
-            textDiv.setAttribute('style', style);
             textDiv.textContent = item.str;
 
-            if (highlightPattern && highlightPattern.test(item.str)) {
-                textDiv.classList.add('wavy-underline');
+            // Highlight matching text (reset lastIndex for global regex)
+            if (highlightPattern) {
+                highlightPattern.lastIndex = 0;
+                if (highlightPattern.test(item.str)) {
+                    textDiv.classList.add('wavy-underline');
+                }
             }
 
             textLayerDivGlobal.appendChild(textDiv);
         });
     }).catch(reason => {
-        console.error('Error rendering text layer:', reason);
+        console.warn('Text layer rendering skipped:', reason.message || reason);
+        // Don't throw - text layer is optional, page render should still complete
     });
 }
 
@@ -1216,7 +1330,18 @@ function updateResultsNav() {
     const hasResults = searchResults.length > 0;
     document.body.classList.toggle('results-bar-visible', hasResults);
     appContainer?.classList.toggle('results-panel-visible', hasResults);
+
+    // Auto-expand panel when there are results
+    if (hasResults && searchResultsPanel) {
+        searchResultsPanel.classList.add('expanded');
+    }
 }
+
+// Search Results Panel Toggle
+const resultsToggleBtn = document.getElementById('results-toggle-btn');
+resultsToggleBtn?.addEventListener('click', () => {
+    searchResultsPanel?.classList.toggle('expanded');
+});
 
 function updateFilterAndResults(selectedFile = 'all') {
     currentFileFilter = selectedFile;
@@ -1520,7 +1645,7 @@ toggleTextSelectionBtn?.addEventListener('click', () => {
             textLayerDivGlobal.style.pointerEvents = 'auto';
             textLayerDivGlobal.classList.add('text-selection-active');
         }
-        if (canvas) canvas.style.visibility = 'hidden';
+        // Keep canvas visible - text layer is transparent overlay
     }
     updatePageControls();
 });
@@ -1838,7 +1963,11 @@ function showLoadingOverlay(message = 'Loading...') {
         });
         document.body.appendChild(overlay);
     } else {
-        overlay.querySelector('.loading-message').textContent = message;
+        // Support both id and class selectors for loading-message element
+        const messageEl = overlay.querySelector('.loading-message') || overlay.querySelector('#loading-message');
+        if (messageEl) {
+            messageEl.textContent = message;
+        }
         overlay.style.display = 'flex';
     }
 }
