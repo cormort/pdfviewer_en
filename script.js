@@ -28,7 +28,6 @@ let thumbnailObserver = null;
 const canvas = document.getElementById('pdf-canvas');
 const ctx = canvas?.getContext('2d');
 const toolbar = document.getElementById('toolbar');
-const toolbarToggleTab = document.getElementById('toolbar-toggle-tab');
 const appContainer = document.getElementById('app-container');
 const pdfContainer = document.getElementById('pdf-container');
 const textLayerDivGlobal = document.getElementById('text-layer');
@@ -284,20 +283,12 @@ document.addEventListener('click', (e) => {
         mainFab?.classList.remove('active');
     }
     // Close mobile toolbar
-    if (window.innerWidth <= 768 && toolbar?.classList.contains('active') && !e.target.closest('#toolbar') && !e.target.closest('#toolbar-toggle-tab')) {
+    if (window.innerWidth <= 768 && toolbar?.classList.contains('active') && !e.target.closest('#toolbar')) {
         toolbar.classList.remove('active');
-        toolbarToggleTab?.classList.remove('active');
     }
 });
 
-// Sidebar/Toolbar Toggle for Mobile
-if (toolbarToggleTab) {
-    toolbarToggleTab.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toolbar?.classList.toggle('active');
-        toolbarToggleTab.classList.toggle('active');
-    });
-}
+
 // === Navigation Events ===
 goToFirstPageBtn?.addEventListener('click', () => {
     if (currentPage !== 1) goToPage(1);
@@ -903,10 +894,7 @@ function updatePageControls() {
     updateFileSwitchSelection();
 }
 
-// === Toolbar Toggle ===
-toolbarToggleTab?.addEventListener('click', () => {
-    appContainer?.classList.toggle('menu-active');
-});
+
 
 pdfContainer?.addEventListener('click', (e) => {
     // Mobile menu auto-hide
