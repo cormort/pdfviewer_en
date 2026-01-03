@@ -1349,18 +1349,8 @@ function updateResultsNav() {
     const hasResults = searchResults.length > 0;
     document.body.classList.toggle('results-bar-visible', hasResults);
     appContainer?.classList.toggle('results-panel-visible', hasResults);
-
-    // Auto-expand panel when there are results
-    if (hasResults && searchResultsPanel) {
-        searchResultsPanel.classList.add('expanded');
-    }
 }
 
-// Search Results Panel Toggle
-const resultsToggleBtn = document.getElementById('results-toggle-btn');
-resultsToggleBtn?.addEventListener('click', () => {
-    searchResultsPanel?.classList.toggle('expanded');
-});
 
 function updateFilterAndResults(selectedFile = 'all') {
     currentFileFilter = selectedFile;
