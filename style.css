@@ -1181,10 +1181,10 @@ button:focus-visible {
     #toolbar-toggle-tab {
         display: flex;
         position: fixed;
-        top: 120px;
+        top: 80px;
         left: 0;
         transition: left var(--transition-slow);
-        z-index: 1003;
+        z-index: 9999;
         background: linear-gradient(135deg, var(--accent-color), #ea580c);
         border: none;
         border-radius: 0 var(--radius-md) var(--radius-md) 0;
@@ -1239,10 +1239,19 @@ button:focus-visible {
         flex-shrink: 0;
     }
 
-    /* Hide restore button on mobile - use icon instead */
+    /* Hide help link icon and session buttons on mobile */
+    #help-link,
     #restore-session-btn,
     #clear-session-btn {
         display: none !important;
+    }
+
+    /* Limit SVG sizes in toolbar */
+    #toolbar svg {
+        width: 24px;
+        height: 24px;
+        max-width: 24px;
+        max-height: 24px;
     }
 
     #toolbar input[type="text"],
@@ -1399,6 +1408,43 @@ button:focus-visible {
     #pdf-container {
         padding: 12px;
         padding-bottom: 100px;
+    }
+
+    /* Mobile Bottom Navigation Bar */
+    .page-nav-overlay {
+        left: 8px;
+        right: 8px;
+        transform: none;
+        width: auto;
+        padding: 6px 10px;
+        gap: 6px;
+        flex-wrap: nowrap;
+        justify-content: center;
+    }
+
+    .page-nav-overlay input[type="range"] {
+        display: none;
+    }
+
+    .page-nav-overlay .toolbar-divider {
+        display: none;
+    }
+
+    .page-nav-overlay button {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    /* Shorten button text on mobile */
+    .fit-width-btn,
+    .fit-height-btn {
+        font-size: 0.7rem;
+    }
+
+    #zoom-level-display {
+        min-width: 40px;
+        font-size: 0.75rem;
+        padding: 4px;
     }
 }
 
