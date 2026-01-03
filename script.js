@@ -106,6 +106,7 @@ const clearSessionBtn = document.getElementById('clear-session-btn');
 const restoreSessionBtn = document.getElementById('restore-session-btn');
 const emptyState = document.getElementById('empty-state');
 const canvasWrapper = document.getElementById('canvas-wrapper');
+const toolbarToggleTab = document.getElementById('toolbar-toggle-tab');
 
 // === Mode Status ===
 let localMagnifierEnabled = false;
@@ -2491,6 +2492,18 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// === Mobile Menu Toggle ===
+toolbarToggleTab?.addEventListener('click', () => {
+    appContainer?.classList.toggle('menu-active');
+});
+
+// Close menu when clicking outside on mobile
+pdfContainer?.addEventListener('click', () => {
+    if (window.innerWidth <= 768 && appContainer?.classList.contains('menu-active')) {
+        appContainer.classList.remove('menu-active');
+    }
+});
 
 // === Start Application ===
 initLocalMagnifier();
