@@ -1319,6 +1319,26 @@ button:focus-visible {
         border-radius: var(--radius-md);
     }
 
+    /* Mobile Empty State */
+    .empty-state-guide {
+        max-width: 280px;
+        padding: 24px;
+        margin-top: 5vh;
+    }
+
+    .empty-state-guide .icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
+    .empty-state-guide h2 {
+        font-size: 1.25rem;
+    }
+
+    .empty-state-guide p {
+        font-size: 0.875rem;
+    }
+
     #search-results-panel {
         position: fixed;
         left: 0;
