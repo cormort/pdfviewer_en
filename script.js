@@ -181,6 +181,18 @@ async function loadAndProcessFiles(files) {
 
     currentZoomMode = 'height';
     if (searchInputElem) searchInputElem.value = '';
+
+    // Set default zoom mode based on device and orientation
+    // Mobile portrait: fit width, Mobile landscape & Desktop: fit height
+    if (window.innerWidth <= 768) {
+        if (window.innerHeight > window.innerWidth) {
+            currentZoomMode = 'width'; // Portrait mode - fit width
+        } else {
+            currentZoomMode = 'height'; // Landscape mode - fit height
+        }
+    } else {
+        currentZoomMode = 'height'; // Desktop - fit height
+    }
     showSearchResultsHighlights = true;
     textLayerDivGlobal?.classList.remove('highlights-hidden');
 
