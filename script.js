@@ -179,11 +179,11 @@ async function loadAndProcessFiles(files) {
         throw e;
     }
 
-    currentZoomMode = 'height';
+    currentZoomMode = 'width'; // 預設改為符合寬度
     if (searchInputElem) searchInputElem.value = '';
 
     // Set default zoom mode based on device and orientation
-    // Mobile portrait: fit width, Mobile landscape & Desktop: fit height
+    // Mobile portrait: fit width, Mobile landscape: fit height, Desktop: fit width
     if (window.innerWidth <= 768) {
         if (window.innerHeight > window.innerWidth) {
             currentZoomMode = 'width'; // Portrait mode - fit width
@@ -191,7 +191,7 @@ async function loadAndProcessFiles(files) {
             currentZoomMode = 'height'; // Landscape mode - fit height
         }
     } else {
-        currentZoomMode = 'height'; // Desktop - fit height
+        currentZoomMode = 'width'; // Desktop - fit width (修正：配合右側縮圖面板)
     }
     showSearchResultsHighlights = true;
     textLayerDivGlobal?.classList.remove('highlights-hidden');
@@ -327,7 +327,7 @@ async function handleRestoreSession() {
         if (files && files.length > 0) {
             loadAndProcessFiles(files);
         } else {
-            showNotification('No previous session found.', 'info');
+            showNotification('No cached session found.', 'info');
         }
     } catch (err) {
         console.error('Restore error:', err);
@@ -358,7 +358,7 @@ fileInput?.addEventListener('change', async function (e) {
         }
     } catch (loadError) {
         console.error("Failed to load or process PDF files:", loadError);
-        showNotification("Error loading PDF: " + loadError.message, 'error');
+        showNotification("Error loading PDF files: " + loadError.message, 'error');
     }
 });
 
@@ -421,6 +421,20 @@ function openNoteModal(note = null) {
         if (deleteNoteBtn) deleteNoteBtn.style.display = 'none';
     }
     noteModal?.classList.add('active');
+
+    // Mobile Check: Read-only mode for notes
+    if (window.innerWidth <= 768) {
+        if (noteContentInput) {
+            noteContentInput.readOnly = true;
+            noteContentInput.placeholder = "Read-only in mobile mode";
+        }
+    } else {
+        if (noteContentInput) {
+            noteContentInput.readOnly = false;
+            noteContentInput.placeholder = "Enter note content here...";
+        }
+    }
+
     setTimeout(() => noteContentInput?.focus(), 100);
 }
 
@@ -498,7 +512,7 @@ async function showNotesList() {
             notesListContainer.innerHTML = `
                 <div class="empty-notes-message">
                     <div class="icon">📝</div>
-                    <p>No notes found for any loaded files.</p>
+                    <p>No notes found for loaded files.</p>
                 </div>
             `;
         } else {
@@ -547,7 +561,7 @@ exportNotesBtn?.addEventListener('click', async () => {
     try {
         const notes = await exportAllNotes();
         if (!notes || notes.length === 0) {
-            showNotification('No notes available to export', 'info');
+            showNotification('No notes to export', 'info');
             return;
         }
 
@@ -570,7 +584,7 @@ exportNotesBtn?.addEventListener('click', async () => {
 });
 
 importNotesTriggerBtn?.addEventListener('click', () => {
-    const backupWarning = "⚠️ WARNING: Importing notes will merge them with your existing notes.\n\nInvalid data formats could potentially cause data corruption or loss. It is STRONGLY RECOMMENDED to export a backup of your current notes before proceeding.\n\nDo you want to continue with the import?";
+    const backupWarning = "⚠️ WARNING: Importing notes will merge them with existing notes.\n\nMalformed data could corrupt or lose data. It is strongly recommended to export a backup of current notes before proceeding.\n\nAre you sure you want to continue?";
 
     if (confirm(backupWarning)) {
         importNotesInput?.click();
@@ -894,12 +908,12 @@ function updatePageControls() {
     const isTSModeActive = textSelectionModeActive;
     if (copyPageTextBtn) {
         copyPageTextBtn.disabled = !hasDocs || !isTSModeActive;
-        copyPageTextBtn.title = isTSModeActive ? 'Copy Page Text' : 'Enable Text Selection (TS) mode first';
+        copyPageTextBtn.title = isTSModeActive ? 'Copy Page Text' : 'Enable Text Selection first';
     }
 
     if (toggleParagraphSelectionBtn) {
         toggleParagraphSelectionBtn.disabled = !hasDocs || !isTSModeActive;
-        toggleParagraphSelectionBtn.title = isTSModeActive ? 'Enable Paragraph Selection' : 'Enable Text Selection (TS) mode first';
+        toggleParagraphSelectionBtn.title = isTSModeActive ? 'Enable Paragraph Selection' : 'Enable Text Selection first';
     }
 
     updateResultsNav();
@@ -1320,14 +1334,14 @@ function searchKeyword() {
         if (resultsList) resultsList.innerHTML = '';
 
         if (searchResults.length === 0) {
-            const notFoundMsg = '<option>Keyword not found</option>';
+            const notFoundMsg = '<option>No keywords found</option>';
             if (resultsDropdown) resultsDropdown.innerHTML = notFoundMsg;
             if (panelResultsDropdown) panelResultsDropdown.innerHTML = notFoundMsg;
             if (fileFilterDropdown) fileFilterDropdown.innerHTML = '<option value="all">All Files</option>';
             if (panelFileFilterDropdown) panelFileFilterDropdown.innerHTML = '<option value="all">All Files</option>';
-            if (resultsList) resultsList.innerHTML = '<p style="padding: 10px;">Keyword not found.</p>';
+            if (resultsList) resultsList.innerHTML = '<p style="padding: 10px;">No keywords found.</p>';
             renderPage(currentPage, null);
-            showNotification('No matching results found', 'info');
+            showNotification('No matches found', 'info');
         } else {
             // IMPORTANT: Expand the panel BEFORE populating results
             // This ensures the container has proper width when thumbnails are observed
@@ -1336,7 +1350,7 @@ function searchKeyword() {
             if (searchResults.length > 0) {
                 goToPage(searchResults[0].page, pattern);
             }
-            showNotification(`Found ${searchResults.length} matching result(s)`, 'success');
+            showNotification(`Found ${searchResults.length} matches`, 'success');
         }
         // Also call for the no-results case
         if (searchResults.length === 0) {
@@ -1348,10 +1362,10 @@ function searchKeyword() {
         }
     }).catch(err => {
         console.error('An unexpected error occurred during search:', err);
-        const errorMsg = '<option value="">Search error</option>';
+        const errorMsg = '<option value="">Search Error</option>';
         if (resultsDropdown) resultsDropdown.innerHTML = errorMsg;
         if (panelResultsDropdown) panelResultsDropdown.innerHTML = errorMsg;
-        if (resultsList) resultsList.innerHTML = '<p style="padding: 10px;">An error occurred during search.</p>';
+        if (resultsList) resultsList.innerHTML = '<p style="padding: 10px;">Error occurred during search.</p>';
         renderPage(currentPage, null);
         updateResultsNav();
         showNotification('An error occurred during search', 'error');
@@ -1391,7 +1405,7 @@ function updateFilterAndResults(selectedFile = 'all') {
         if (!dropdown) return;
         dropdown.innerHTML = '';
         if (filteredResults.length === 0) {
-            dropdown.innerHTML = '<option value="">No results in this file</option>';
+            dropdown.innerHTML = '<option value="">No matches in this file</option>';
         } else {
             filteredResults.forEach(result => {
                 const option = document.createElement('option');
@@ -1405,7 +1419,7 @@ function updateFilterAndResults(selectedFile = 'all') {
     if (resultsList) {
         resultsList.innerHTML = '';
         if (filteredResults.length === 0) {
-            resultsList.innerHTML = '<p style="padding: 10px;">No results found in this file.</p>';
+            resultsList.innerHTML = '<p style="padding: 10px;">No matches found in this file.</p>';
         } else {
             initThumbnailObserver();
             filteredResults.forEach(result => {
@@ -1566,7 +1580,7 @@ exportPageBtn?.addEventListener('click', async () => {
 
     try {
         const pageInfo = getDocAndLocalPage(currentPage);
-        if (!pageInfo) throw new Error('Could not get current page information');
+        if (!pageInfo) throw new Error('Cannot get current page info');
 
         const page = await pageInfo.doc.getPage(pageInfo.localPage);
         const exportViewport = page.getViewport({
@@ -1574,10 +1588,10 @@ exportPageBtn?.addEventListener('click', async () => {
         });
 
         const tc = document.createElement('canvas');
-        tc.width = exportViewport.width;
-        tc.height = exportViewport.height;
-        const tctx = tc.getContext('2d');
-        if (!tctx) throw new Error('Could not get rendering context for exported canvas');
+        tctx.width = exportViewport.width;
+        tctx.height = exportViewport.height;
+        const tctx_ctx = tc.getContext('2d');
+        if (!tctx_ctx) throw new Error('Cannot get export canvas context');
 
         const renderContext = {
             canvasContext: tctx,
@@ -1789,8 +1803,8 @@ sharePageBtn?.addEventListener('click', async () => {
         const tc = document.createElement('canvas');
         tc.width = shareViewport.width;
         tc.height = shareViewport.height;
-        const tctx = tc.getContext('2d');
-        if (!tctx) throw new Error('Could not get rendering context for shared canvas');
+        const tctx_share = tc.getContext('2d');
+        if (!tctx_share) throw new Error('Cannot get share canvas context');
 
         const renderContext = {
             canvasContext: tctx,
@@ -2525,8 +2539,8 @@ initializeApp();
 
 console.log('✓ PDF Reader optimized and initialized.');
 console.log('Keyboard Shortcuts:');
-console.log('  ← / → : Previous / Next Page (or Prev/Next Search Result)');
-console.log('  Home / End : First Page / Last Page');
+console.log('  ← / → : Previous / Next Page (or Previous/Next Search Result)');
+console.log('  Home / End : First / Last Page');
 console.log('  Ctrl+F : Search');
-console.log('  + / - : Zoom In / Zoom Out');
+console.log('  + / - : Zoom In / Out');
 console.log('  Ctrl+0 : Reset Zoom (Fit Height)');
