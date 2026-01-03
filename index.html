@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Pro Studio - Keyword Search & Annotations</title>
+  <title>PDF Professional Studio</title>
   <link rel="stylesheet" href="style.css">
   <script type="module">
     // Load PDF.js from local files (ES Module)
@@ -16,15 +16,18 @@
 
 <body>
   <div id="app-container">
+    <div id="toolbar-toggle-tab" title="Toggle Menu">
+      <span class="icon">☰</span>
+    </div>
     <header id="toolbar">
       <div class="title-section">
         <div class="app-logo">PDF</div>
-        <h1 class="app-title">Pro Studio</h1>
+        <h1 class="app-title">Professional Studio</h1>
       </div>
 
       <div class="file-section">
-        <button id="restore-session-btn" class="btn-secondary" title="Restore previous session">🔄 Restore</button>
-        <button id="clear-session-btn" class="btn-danger" style="display: none;" title="Clear session">🗑️
+        <button id="restore-session-btn" class="btn-secondary" title="Restore Last Session">🔄 Restore</button>
+        <button id="clear-session-btn" class="btn-danger" style="display: none;" title="Clear Session">🗑️
           Clear</button>
         <label for="fileInput" class="custom-file-upload">
           <span>📁 Upload PDF</span>
@@ -51,7 +54,7 @@
         <button id="prev-page" title="Previous Page">‹</button>
         <div id="page-num-display">Page - / -</div>
         <button id="next-page" title="Next Page">›</button>
-        <input type="number" id="page-to-go" min="1" value="1" title="Go to page">
+        <input type="number" id="page-to-go" min="1" value="1" title="Go to Page">
         <button id="go-to-page-btn" class="btn-secondary">Go</button>
       </div>
 
@@ -70,8 +73,8 @@
         <!-- Empty State -->
         <div id="empty-state" class="empty-state-guide">
           <div class="icon">📄</div>
-          <h2>Start your project</h2>
-          <p>Upload PDFs to enable keyword search, page-level notes, and more.</p>
+          <h2>Start Your Project</h2>
+          <p>Upload PDF to enable keyword search, page notes, and more.</p>
         </div>
 
         <!-- PDF Content Wrapper -->
@@ -89,7 +92,7 @@
       <div id="resizer"></div>
 
       <div id="search-results-panel">
-        <h3>🔍 Results</h3>
+        <h3>🔍 Search Results</h3>
         <div id="panel-dropdown-container">
           <select id="panelFileFilterDropdown">
             <option value="all">All Files</option>
@@ -123,7 +126,7 @@
         <button id="toggle-highlighter-btn" class="btn-secondary" title="Highlight Selection">
           <span class="icon">🖍️</span>
         </button>
-        <button id="clear-highlighter-btn" class="btn-secondary" title="Clear All Marks">
+        <button id="clear-highlighter-btn" class="btn-secondary" title="Clear All Highlights">
           <span class="icon">🧹</span>
         </button>
         <div class="fab-divider"></div>
@@ -133,14 +136,14 @@
         <button id="toggle-paragraph-selection-btn" class="btn-secondary" title="Select Paragraph">
           <span class="icon">¶</span>
         </button>
-        <button id="copy-page-text-btn" class="btn-secondary" title="Copy Selected">
+        <button id="copy-page-text-btn" class="btn-secondary" title="Copy Selection">
           <span class="icon">📋</span>
         </button>
         <div class="fab-divider"></div>
         <button id="share-page-btn" class="btn-secondary" title="Share PDF">
           <span class="icon">🔗</span>
         </button>
-        <button id="export-page-btn" class="btn-secondary" title="Export to Word/Excel">
+        <button id="export-page-btn" class="btn-secondary" title="Export">
           <span class="icon">📤</span>
         </button>
         <button id="toggle-local-magnifier-btn" class="btn-secondary" title="Magnifier (Click PDF)">
@@ -177,7 +180,7 @@
           <button id="close-note-modal" class="close-btn">&times;</button>
         </div>
         <div class="modal-body">
-          <textarea id="note-content" placeholder="Type your note here..."></textarea>
+          <textarea id="note-content" placeholder="Enter note content here..."></textarea>
         </div>
         <div class="modal-footer">
           <button id="delete-note-btn" class="btn-danger" style="display:none;">Delete</button>
@@ -198,10 +201,9 @@
           <!-- Notes will be loaded here -->
         </div>
         <div class="modal-footer backup-actions">
-          <button id="export-notes-btn" class="btn-secondary" title="Export all notes to a JSON file">📤 Export
+          <button id="export-notes-btn" class="btn-secondary" title="Export notes as JSON">📤 Export Backup</button>
+          <button id="import-notes-trigger-btn" class="btn-secondary" title="Import notes from JSON">📥 Import
             Backup</button>
-          <button id="import-notes-trigger-btn" class="btn-secondary" title="Import notes from a backup JSON file">📥
-            Import Backup</button>
           <input type="file" id="import-notes-input" accept=".json" style="display: none;">
         </div>
       </div>
