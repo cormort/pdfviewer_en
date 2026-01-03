@@ -1169,28 +1169,89 @@ button:focus-visible {
 
 /* =================== PERFORMANCE UTILITIES =================== */
 /* =================== MEDIA QUERIES (MOBILE OPTIMIZATION) =================== */
+
+/* Hide toolbar toggle tab on desktop */
+#toolbar-toggle-tab {
+    display: none;
+}
+
 @media screen and (max-width: 768px) {
-    #toolbar {
-        padding: 8px 12px;
-        gap: 8px;
-        flex-wrap: wrap;
+
+    /* Mobile Menu Toggle Tab */
+    #toolbar-toggle-tab {
+        display: flex;
         position: fixed;
-        top: 0;
+        top: 120px;
         left: 0;
-        right: 0;
-        transform: translateY(-100%);
-        transition: transform var(--transition-normal);
-        z-index: 1000;
-        background: var(--bg-primary);
-        box-shadow: var(--shadow-xl);
+        transition: left var(--transition-slow);
+        z-index: 1003;
+        background: linear-gradient(135deg, var(--accent-color), #ea580c);
+        border: none;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-size: 1.2em;
+        height: 48px;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-lg);
+        color: white;
     }
 
-    #toolbar.active {
-        transform: translateY(0);
+    #toolbar-toggle-tab .icon {
+        transition: transform var(--transition-slow);
+    }
+
+    #app-container.menu-active~#toolbar-toggle-tab,
+    body.menu-active #toolbar-toggle-tab {
+        left: 280px;
+    }
+
+    /* Mobile Sidebar Menu */
+    #toolbar {
+        position: fixed;
+        top: 0;
+        left: -300px;
+        width: 280px;
+        max-width: 85vw;
+        height: 100vh;
+        max-height: 100vh;
+        background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary));
+        border-right: 1px solid var(--border-color);
+        padding: 20px;
+        box-sizing: border-box;
+        box-shadow: var(--shadow-xl);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        transition: left var(--transition-slow);
+        z-index: 1001;
+        overflow-y: auto;
+        overflow-x: hidden;
+        gap: 12px;
+    }
+
+    #app-container.menu-active #toolbar,
+    body.menu-active #toolbar {
+        left: 0;
+    }
+
+    #toolbar>* {
+        flex-shrink: 0;
+    }
+
+    #toolbar input[type="text"],
+    #toolbar input[type="number"],
+    #toolbar select,
+    #toolbar button {
+        width: 100%;
+        padding: 10px 12px;
     }
 
     .title-section {
         margin-right: 0;
+        margin-bottom: 10px;
     }
 
     .app-title {
@@ -1201,17 +1262,17 @@ button:focus-visible {
         order: 3;
         width: 100%;
         max-width: none;
-        margin-top: 4px;
     }
 
     .file-section,
     .nav-section {
-        gap: 4px;
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
     }
 
     #page-num-display {
-        min-width: 60px;
-        font-size: 0.75rem;
+        text-align: center;
     }
 
     #search-results-panel {
@@ -1270,7 +1331,13 @@ button:focus-visible {
         font-size: 24px;
         box-shadow: var(--shadow-xl);
     }
+
+    #pdf-container {
+        padding: 12px;
+        padding-bottom: 100px;
+    }
 }
+
 
 @media screen and (max-width: 480px) {
     .nav-section button span {
