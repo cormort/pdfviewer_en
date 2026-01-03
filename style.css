@@ -1202,8 +1202,7 @@ button:focus-visible {
         transition: transform var(--transition-slow);
     }
 
-    #app-container.menu-active~#toolbar-toggle-tab,
-    body.menu-active #toolbar-toggle-tab {
+    #app-container.menu-active #toolbar-toggle-tab {
         left: 280px;
     }
 
@@ -1232,8 +1231,7 @@ button:focus-visible {
         gap: 12px;
     }
 
-    #app-container.menu-active #toolbar,
-    body.menu-active #toolbar {
+    #app-container.menu-active #toolbar {
         left: 0;
     }
 
@@ -1241,38 +1239,84 @@ button:focus-visible {
         flex-shrink: 0;
     }
 
+    /* Hide restore button on mobile - use icon instead */
+    #restore-session-btn,
+    #clear-session-btn {
+        display: none !important;
+    }
+
     #toolbar input[type="text"],
     #toolbar input[type="number"],
     #toolbar select,
     #toolbar button {
         width: 100%;
-        padding: 10px 12px;
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    /* File upload button styling for mobile */
+    #toolbar label[for="fileInput"] {
+        display: flex !important;
+        width: 100%;
+        padding: 12px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: var(--radius-md);
+        text-align: center;
+        justify-content: center;
+        cursor: pointer;
+        font-weight: 600;
     }
 
     .title-section {
-        margin-right: 0;
-        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .app-logo {
+        font-size: 1.5rem;
     }
 
     .app-title {
-        display: none;
+        display: block;
+        font-size: 1.25rem;
+    }
+
+    .file-section {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+        order: 1;
     }
 
     .search-section {
-        order: 3;
+        order: 2;
         width: 100%;
         max-width: none;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
     }
 
-    .file-section,
     .nav-section {
         width: 100%;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
+        order: 3;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
     }
 
     #page-num-display {
         text-align: center;
+        padding: 10px;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
     }
 
     #search-results-panel {
