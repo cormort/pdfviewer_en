@@ -1316,13 +1316,19 @@ function searchKeyword() {
             renderPage(currentPage, null);
             showNotification('No matching results found', 'info');
         } else {
+            // IMPORTANT: Expand the panel BEFORE populating results
+            // This ensures the container has proper width when thumbnails are observed
+            updateResultsNav();
             updateFilterAndResults('all');
             if (searchResults.length > 0) {
                 goToPage(searchResults[0].page, pattern);
             }
             showNotification(`Found ${searchResults.length} matching result(s)`, 'success');
         }
-        updateResultsNav();
+        // Also call for the no-results case
+        if (searchResults.length === 0) {
+            updateResultsNav();
+        }
 
         if (window.innerWidth <= 768 && appContainer?.classList.contains('menu-active')) {
             appContainer.classList.remove('menu-active');
