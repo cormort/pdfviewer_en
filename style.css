@@ -615,13 +615,21 @@ button {
 /* =================== FLOATING ACTION BUTTONS =================== */
 #floating-action-buttons {
     position: fixed;
-    right: 24px;
+    right: 390px;
+    /* Position to the left of the search results panel (360px + 30px margin) */
     bottom: 24px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     z-index: 1000;
+    transition: right var(--transition-normal);
 }
+
+/* When results panel is not visible, move back to right edge */
+#app-container:not(.results-panel-visible) #floating-action-buttons {
+    right: 24px;
+}
+
 
 .fab {
     width: 52px;
