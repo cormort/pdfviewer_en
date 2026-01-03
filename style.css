@@ -616,7 +616,8 @@ button {
 #floating-action-buttons {
     position: fixed;
     right: 24px;
-    bottom: 24px;
+    bottom: 100px;
+    /* Raised higher to avoid covering bottom toolbar */
     display: flex;
     flex-direction: column;
     gap: 12px;
